@@ -4,13 +4,24 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+[System.Serializable]
+public class RootArray
+{
+    public ClearJudge[] clearJudge;
+}
+
 public class SlidePuzzleSceneDirector : MonoBehaviour
 {
     // ピースリスト
     [SerializeField] List<GameObject> pieces;
 
     // クリアジャッジリスト
-    [SerializeField] List<ClearJudge> clearJudgeList;
+    [SerializeField] RootArray[] clearJudgeList;
+
+    // オーディオリスト
+    AudioSource audioSource;
+
+    [SerializeField] AudioClip Button_press_799;
 
     // クリア判定
     bool isClear = false;
@@ -31,6 +42,8 @@ public class SlidePuzzleSceneDirector : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
+
         // 初期位置を保存
         startPositions = new List<Vector3>();
         foreach (var item in pieces)
@@ -86,6 +99,7 @@ public class SlidePuzzleSceneDirector : MonoBehaviour
 
                     // 選んだピースと0番のピースを入れ替える
                     SwapPiece(hitPiece, emptyPiece);
+                    audioSource.PlayOneShot(Button_press_799);
                 }
             }
         }
@@ -129,18 +143,31 @@ public class SlidePuzzleSceneDirector : MonoBehaviour
 
     public void JudgeClear()
     {
-        foreach(ClearJudge clearJudge in clearJudgeList)
+        for(int i = 0; i<clearJudgeList.Length; i++)
         {
-            if (clearJudge.IsClearJudge == false)
+            bool isSuccess = true;
+
+            foreach (ClearJudge clearJudge in clearJudgeList[i].clearJudge)
             {
+                if (clearJudge.IsClearJudge == false)
+                {
+                    isSuccess = false;
+                    break;
+                }
+            }
+            if (isSuccess == true)
+            {
+                // クリア判定
+                buttonRetry.SetActive(true);
+
+                isClear = true;
+
+                clearText.SetActive(true);
+
                 return;
             }
         }
-        // クリア判定
-        buttonRetry.SetActive(true);
-
-        isClear = true;
-
-        clearText.SetActive(true);
+        
+        
     }
 }
